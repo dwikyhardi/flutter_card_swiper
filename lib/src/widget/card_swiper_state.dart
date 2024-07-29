@@ -1,9 +1,11 @@
 part of 'card_swiper.dart';
 
 class _CardSwiperState<T extends Widget> extends State<CardSwiper>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late CardAnimation _cardAnimation;
   late AnimationController _animationController;
+  late AnimationController _backCardAnimationController;
+  late Animation<double> _opacityAnimation;
 
   SwipeType _swipeType = SwipeType.none;
   CardSwiperDirection _detectedDirection = CardSwiperDirection.none;
@@ -43,6 +45,10 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
       initialOffset: widget.backCardOffset,
       onSwipeDirectionChanged: onSwipeDirectionChanged,
     );
+    _backCardAnimationController =
+        AnimationController(vsync: this, duration: widget.duration);
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(_backCardAnimationController);
   }
 
   void onSwipeDirectionChanged(CardSwiperDirection direction) {
@@ -64,30 +70,27 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
   @override
   void dispose() {
+    _backCardAnimationController.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return Padding(
-          padding: widget.padding,
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return Stack(
-                clipBehavior: Clip.none,
-                fit: StackFit.expand,
-                children: List.generate(numberOfCardsOnScreen(), (index) {
-                  if (index == 0) return _frontItem(constraints);
-                  return _backItem(constraints, index);
-                }).reversed.toList(),
-              );
-            },
-          ),
-        );
-      },
+    return Padding(
+      padding: widget.padding,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return Stack(
+            clipBehavior: Clip.none,
+            fit: StackFit.expand,
+            children: List.generate(numberOfCardsOnScreen(), (index) {
+              if (index == 0) return _frontItem(constraints);
+              return _backItem(constraints, index);
+            }).reversed.toList(),
+          );
+        },
+      ),
     );
   }
 
@@ -105,6 +108,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
               _currentIndex!,
               (100 * _cardAnimation.left / widget.threshold).ceil(),
               (100 * _cardAnimation.top / widget.threshold).ceil(),
+              false,
             ),
           ),
         ),
@@ -113,7 +117,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
             await widget.onTapDisabled?.call();
           }
         },
-        onPanStart: (tapInfo) {
+        onVerticalDragStart: (tapInfo) {
           if (!widget.isDisabled) {
             final renderBox = context.findRenderObject()! as RenderBox;
             final position = renderBox.globalToLocal(tapInfo.globalPosition);
@@ -121,18 +125,21 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
             if (position.dy < renderBox.size.height / 2) _tappedOnTop = true;
           }
         },
-        onPanUpdate: (tapInfo) {
+        onVerticalDragUpdate: (tapInfo) {
           if (!widget.isDisabled) {
             setState(
-              () => _cardAnimation.update(
-                tapInfo.delta.dx,
-                tapInfo.delta.dy,
-                _tappedOnTop,
-              ),
+              () {
+                _backCardAnimationController.forward();
+                _cardAnimation.update(
+                  tapInfo.delta.dx,
+                  tapInfo.delta.dy,
+                  _tappedOnTop,
+                );
+              },
             );
           }
         },
-        onPanEnd: (tapInfo) {
+        onVerticalDragEnd: (tapInfo) {
           if (_canSwipe) {
             _tappedOnTop = false;
             _onEndAnimation();
@@ -150,9 +157,54 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
         scale: _cardAnimation.scale - ((1 - widget.scale) * (index - 1)),
         child: ConstrainedBox(
           constraints: constraints,
-          child: widget.cardBuilder(context, getValidIndexOffset(index)!, 0, 0),
+          child: Builder(
+            builder: (context) {
+              if (index == 1) {
+                return _backItemAnimated(index);
+              } else {
+                return widget.cardBuilder(
+                      context,
+                      getValidIndexOffset(index)!,
+                      0,
+                      0,
+                      true,
+                    ) ??
+                    const SizedBox();
+              }
+            },
+          ),
         ),
       ),
+    );
+  }
+
+  AnimatedBuilder _backItemAnimated(int index) {
+    return AnimatedBuilder(
+      animation: _backCardAnimationController,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            widget.cardBuilder(
+                  context,
+                  getValidIndexOffset(index)!,
+                  0,
+                  0,
+                  true,
+                ) ??
+                const SizedBox(),
+            Opacity(
+              opacity: _opacityAnimation.value,
+              child: widget.cardBuilder(
+                context,
+                getValidIndexOffset(index)!,
+                0,
+                0,
+                false,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -205,6 +257,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
     onSwipeDirectionChanged(CardSwiperDirection.none);
     _detectedDirection = CardSwiperDirection.none;
     setState(() {
+      _backCardAnimationController.reset();
       _animationController.reset();
       _cardAnimation.reset();
       _swipeType = SwipeType.none;

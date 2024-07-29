@@ -24,13 +24,14 @@ class Example extends StatefulWidget {
 class _ExamplePageState extends State<Example> {
   final CardSwiperController controller = CardSwiperController();
 
-  final cards = candidates.map(ExampleCard.new).toList();
-
   @override
   void dispose() {
     controller.dispose();
     super.dispose();
   }
+
+  List<Widget> cardsWidget({bool isBackCard = false}) =>
+      candidates.map((e) => ExampleCard(e, isBackCard)).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -41,19 +42,16 @@ class _ExamplePageState extends State<Example> {
             Flexible(
               child: CardSwiper(
                 controller: controller,
-                cardsCount: cards.length,
+                numberOfCardsDisplayed: 4,
+                cardsCount: cardsWidget().length,
                 onSwipe: _onSwipe,
                 onUndo: _onUndo,
-                numberOfCardsDisplayed: 3,
-                backCardOffset: const Offset(40, 40),
+                allowedSwipeDirection: const AllowedSwipeDirection.symmetric(
+                  vertical: true,
+                ),
                 padding: const EdgeInsets.all(24.0),
-                cardBuilder: (
-                  context,
-                  index,
-                  horizontalThresholdPercentage,
-                  verticalThresholdPercentage,
-                ) =>
-                    cards[index],
+                cardBuilder: (_, index, __, ___, isBackCard) =>
+                    cardsWidget(isBackCard: isBackCard)[index],
               ),
             ),
             Padding(

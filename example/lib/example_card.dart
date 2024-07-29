@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 
 class ExampleCard extends StatelessWidget {
   final ExampleCandidateModel candidate;
+  final bool isBackCard;
 
   const ExampleCard(
-    this.candidate, {
+    this.candidate,
+    this.isBackCard, {
     super.key,
   });
 
@@ -13,6 +15,8 @@ class ExampleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       clipBehavior: Clip.hardEdge,
+      width: 328,
+      height: 146,
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(10)),
         color: Colors.white,
@@ -26,50 +30,161 @@ class ExampleCard extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: candidate.color,
+      child: Builder(
+        builder: (context) {
+          if (isBackCard) {
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      candidate.name,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      candidate.job,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  candidate.name,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: candidate.color,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  candidate.job,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 15,
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      candidate.name,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      candidate.job,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      candidate.city,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  candidate.city,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+
+          // return AnimatedCrossFade(
+          //   duration: Duration.zero,
+          //   crossFadeState: isBackCard
+          //       ? CrossFadeState.showSecond
+          //       : CrossFadeState.showFirst,
+          //   secondChild: Align(
+          //     alignment: Alignment.bottomCenter,
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(16.0),
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //         children: [
+          //           Text(
+          //             candidate.name,
+          //             style: const TextStyle(
+          //               color: Colors.black,
+          //               fontWeight: FontWeight.bold,
+          //               fontSize: 14,
+          //             ),
+          //           ),
+          //           Text(
+          //             candidate.job,
+          //             style: const TextStyle(
+          //               color: Colors.grey,
+          //               fontSize: 12,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          //   firstChild: Column(
+          //     crossAxisAlignment: CrossAxisAlignment.start,
+          //     children: [
+          //       Flexible(
+          //         child: Container(
+          //           decoration: BoxDecoration(
+          //             gradient: LinearGradient(
+          //               begin: Alignment.topCenter,
+          //               end: Alignment.bottomCenter,
+          //               colors: candidate.color,
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //       Padding(
+          //         padding: const EdgeInsets.all(16),
+          //         child: Column(
+          //           crossAxisAlignment: CrossAxisAlignment.start,
+          //           children: [
+          //             Text(
+          //               candidate.name,
+          //               style: const TextStyle(
+          //                 color: Colors.black,
+          //                 fontWeight: FontWeight.bold,
+          //                 fontSize: 20,
+          //               ),
+          //             ),
+          //             const SizedBox(height: 5),
+          //             Text(
+          //               candidate.job,
+          //               style: const TextStyle(
+          //                 color: Colors.grey,
+          //                 fontSize: 15,
+          //               ),
+          //             ),
+          //             const SizedBox(height: 5),
+          //             Text(
+          //               candidate.city,
+          //               style: const TextStyle(color: Colors.grey),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // );
+        },
       ),
     );
   }

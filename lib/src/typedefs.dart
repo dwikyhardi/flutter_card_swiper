@@ -19,6 +19,7 @@ typedef NullableCardBuilder = Widget? Function(
   int index,
   int horizontalOffsetPercentage,
   int verticalOffsetPercentage,
+  bool isBackCard,
 );
 
 typedef CardSwiperDirectionChange = void Function(

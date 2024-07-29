@@ -5,6 +5,7 @@ Widget? genericBuilder(
   int index,
   int horizontalPercentage,
   int verticalPercentage,
+  bool isBackCard,
 ) {
   return Container(
     width: 200,
